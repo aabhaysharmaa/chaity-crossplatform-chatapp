@@ -1,8 +1,7 @@
 import type { NextFunction, Request, Response } from "express"
 import type { AuthRequest } from "../middleware/auth"
 import { User } from "../models/User"
-import { clerkClient, getAuth } from "@clerk/express"
-
+import { clerkClient, getAuth } from "@clerk/express";
 
 export const getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
 	try {
@@ -16,7 +15,7 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
 	} catch (error) {
 		console.log("Error in getMe :", error)
 		res.status(500)
-		next()
+		next(error)
 	}
 }
 
@@ -28,11 +27,11 @@ export const authCallback = async (req: Request, res: Response, next: NextFuncti
 		}
 		let newUser = await User.findOne({ clerkId })
 		if (!newUser) {
-			// get user info form clerk and save into database
 			const clerkUser = await clerkClient.users.getUser(clerkId);
+
 			newUser = await User.create({
 				clerkId,
-				name: clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim() : clerkUser.emailAddresses[0]?.emailAddress.split("@")[0],
+				name: clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim() : clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0],
 				email: clerkUser.emailAddresses[0]?.emailAddress,
 				avatar: clerkUser.imageUrl
 			})
