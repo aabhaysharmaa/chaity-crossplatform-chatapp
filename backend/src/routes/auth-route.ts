@@ -1,11 +1,13 @@
 import express from "express";
-import { login } from "../controllers/auth-controller";
+import { getMe , authCallback } from "../controllers/auth-controller";
+import { protectRoute } from "../middleware/auth";
 
 const router = express.Router();
 
 
 
-router.get("/", login)
+router.get("/me", protectRoute, getMe)
+router.post("/callback", authCallback)
 
 
 
