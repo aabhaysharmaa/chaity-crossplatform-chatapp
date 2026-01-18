@@ -5,19 +5,16 @@ import { verifyToken } from "@clerk/express";
 import Message from "../models/Message";
 import Chat from "../models/Chat";
 import { User } from "../models/User";
-import type { SocketType } from "dgram";
-interface SocketWithUserId extends Socket {
-	userId: string
-}
+
 // store online users in memory : userId -> socketID
-export const onlineUsers: Map<string, string> = new Map()
+export const onlineUsers: Map<string, Set<string>> = new Map()
 
 export const initializeSocket = (httpServer: HttpServer) => {
 	const allowedOrigins = [
 		"http://localhost:8081", // Expo mobile
 		"http://localhost:5173", // Vite web dev
 		process.env.FRONTEND_URL as string,  // production
-	]
+	].filter(Boolean) as string[];
 	const io = new SocketServer(httpServer, { cors: { origin: allowedOrigins } })
 
 	// verify socket connection - if the user is authenticated , we will store the suer id in the socket
@@ -36,7 +33,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
 			}
 
 			// if we found the user then store the userId in DB
-			(socket as SocketWithUserId).userId = user._id.toString();
+			socket.data.userId = user._id.toString();
 			next()
 		} catch (error: any) {
 			next(new Error(error))
@@ -47,7 +44,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
 	//  it's the event that is triggered when a new client connects to the server
 
 	io.on("connection", (socket) => {
-		const userId = (socket as SocketWithUserId).userId
+		const userId = socket.data.userId
 
 		// send list of currently online users to the newly connected client
 		socket.emit("online-users", { userIds: Array.from(onlineUsers.keys()) });
@@ -89,7 +86,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
 				chat.lastMessageAt = new Date();
 				await chat.save();
 
-				await message.populate("sender", "name email avatar")
+				await message.populate("sender", "name  avatar")
 
 				io.to(`chat:${chatId}`).emit("new-message", message)
 
@@ -112,3 +109,4 @@ export const initializeSocket = (httpServer: HttpServer) => {
 	})
 	return io;
 }
+
