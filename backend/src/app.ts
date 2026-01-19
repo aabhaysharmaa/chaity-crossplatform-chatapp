@@ -21,11 +21,6 @@ app.use("/api/messages", messageRoutes)
 app.use("/api/users", userRoutes)
 
 
-app.get("/", (req: Request, res: Response) => {
-	res.send({ message: "Server is working fine" })
-})
-
-
 // error handlers must come after all the routes and other middlewares so they can catch errors passed with next(err) or thrown inside async handlers
 
 app.use(errorHandler);

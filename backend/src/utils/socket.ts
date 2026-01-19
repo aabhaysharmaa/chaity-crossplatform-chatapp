@@ -7,7 +7,7 @@ import Chat from "../models/Chat";
 import { User } from "../models/User";
 
 // store online users in memory : userId -> socketID
-export const onlineUsers: Map<string, Set<string>> = new Map()
+export const onlineUsers: Map<string, Set<string>> = new Map();
 
 export const initializeSocket = (httpServer: HttpServer) => {
 	const allowedOrigins = [
@@ -65,7 +65,6 @@ export const initializeSocket = (httpServer: HttpServer) => {
 		})
 
 		// handle sending messages
-
 		socket.on("send-message", async (data: { chatId: string, text: string }) => {
 			try {
 				const { chatId, text } = data
